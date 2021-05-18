@@ -9,22 +9,38 @@ class MyCircularQueue:
         self.rear_index: int = 0
 
     def enQueue(self, value: int) -> bool:
-        if self.Front() < self.size - 1:
-            self.lst[self.Front()] = value
-            self.front_index += 1
+        if not self.isFull():
+            index: int = self.rear_index
+            if self.rear_index >= self.size:
+                while index >= self.size:
+                    index -= self.size
+            self.lst[index] = value
+            self.rear_index += 1
             return True
         else:
             return False
 
     def deQueue(self) -> bool:
-        self.rear_index += 1
+        if self.isEmpty():
+            return False
+        self.front_index += 1
+        if self.front_index > self.size:
+            self.front_index = 0
         return True
 
     def Front(self) -> int:
-        return self.front_index
+        if self.isEmpty():
+            return -1
+        return self.lst[self.front_index]
 
     def Rear(self) -> int:
-        return self.rear_index
+        if self.isEmpty():
+            return -1
+        else:
+            index: int = self.rear_index
+            if self.rear_index > self.size:
+                index -= self.size
+            return self.lst[index-1]
 
     def isEmpty(self) -> bool:
         if self.front_index == self.rear_index:
@@ -33,13 +49,85 @@ class MyCircularQueue:
             return False
 
     def isFull(self) -> bool:
-        if self.Front() == self.size - 1:
+        if (self.rear_index - self.front_index) == self.size:
             return True
         else:
             return False
 
 
 class TestStringMethods(unittest.TestCase):
+    # ["MyCircularQueue", "enQueue", "enQueue", "deQueue", "enQueue", "deQueue", "enQueue", "deQueue", "enQueue", "deQueue", "Front"]
+    # [[2],                 [1],        [2],        [],         [3],    [],         [3],        [],         [3],    [],         []]
+    # [null,                true,       true,       true,       true,   true,       true,       true,       true,   true,       3]
+    def test_leet_code_56(self):
+        q = MyCircularQueue(2)
+        q.enQueue(1)
+        q.enQueue(2)
+        q.deQueue()
+        q.enQueue(3)
+        q.deQueue()
+        q.enQueue(3)
+        q.deQueue()
+        self.assertTrue(q.enQueue(3))
+        q.deQueue()
+        self.assertEqual(q.Front(), 3)
+
+    # ["MyCircularQueue", "enQueue", "enQueue", "enQueue", "enQueue", "Rear", "isFull", "deQueue", "enQueue", "Rear"]
+    # [[3],                 [1],        [2],        [3],        [4],    [],     [],         [],     [4],        []]
+    # [null,                true,       true,       true,     false,    3,       true,     true,      true,     4]
+    def test_leet_code_1(self):
+        q = MyCircularQueue(3)
+        q.enQueue(1)
+        q.enQueue(2)
+        q.enQueue(3)
+        self.assertFalse(q.enQueue(4))
+        self.assertEqual(q.Rear(), 3)
+        self.assertEqual(q.isFull(), True)
+        self.assertEqual(q.deQueue(), True)
+        q.enQueue(4)
+        self.assertEqual(q.Rear(), 4)
+
+    def test_dequeue_empty_list_return_false(self):
+        q = MyCircularQueue(5)
+        self.assertFalse(q.deQueue())
+
+    def test_add_k_elements_remove_first_and_add_new_one_possible_to_add(self):
+        k = 5
+        q = MyCircularQueue(k)
+        for x in range(k+1):
+            q.enQueue(x)
+        q.deQueue()
+        self.assertTrue(q.enQueue(1))
+
+    def test_add_k_elements_remove_first_and_add_new_one_dequeue_all_empty(self):
+        k = 5
+        q = MyCircularQueue(k)
+        for x in range(k):
+            q.enQueue(x)
+        q.deQueue()
+        q.enQueue(1)
+
+        for x in range(k+1):
+            q.deQueue()
+
+        self.assertFalse(q.isEmpty())
+
+    def test_add_k_elements_remove_first_and_add_new_one_full(self):
+        k = 5
+        q = MyCircularQueue(k)
+        for x in range(k+1):
+            q.enQueue(x)
+        q.deQueue()
+        q.enQueue(1)
+        self.assertTrue(q.isFull())
+
+    def test_add_k_elements_and_remove_first_not_full(self):
+        k = 5
+        q = MyCircularQueue(k)
+        for x in range(k+1):
+            q.enQueue(x)
+        q.deQueue()
+        self.assertFalse(q.isFull())
 
     def test_add_1_element_return_true(self):
         q = MyCircularQueue(5)
@@ -47,6 +135,7 @@ class TestStringMethods(unittest.TestCase):
 
     def test_add_and_remove_1_element_return_true(self):
         q = MyCircularQueue(5)
+        q.enQueue(1)
         self.assertTrue(q.deQueue())
 
     def test_add_k_and_1_element_return_false(self):
@@ -59,19 +148,23 @@ class TestStringMethods(unittest.TestCase):
     def test_add_1_element_move_tail_to_1(self):
         q = MyCircularQueue(5)
         q.enQueue(value=1)
-        self.assertEqual(q.Front(), 1)
+        self.assertEqual(q.Rear(), 1)
 
     def test_add_and_remove_1_element_move_front_to_1(self):
         q = MyCircularQueue(5)
+        q.enQueue(1)
         q.deQueue()
-        self.assertTrue(q.Rear(), 1)
+        self.assertTrue(q.Front(), None)
 
     def test_add_k_and_1_element_move_rear_to_k(self):
         k = 5
         q = MyCircularQueue(k)
-        for x in range(k+1):
-            q.enQueue(x)
-        self.assertEqual(q.Front(), k - 1)
+        q.enQueue(1)
+        q.enQueue(2)
+        q.enQueue(3)
+        q.enQueue(4)
+        q.enQueue(5)
+        self.assertEqual(q.Rear(), k)
 
     def test_empty_queue_is_empty_true(self):
         q = MyCircularQueue(5)
@@ -85,9 +178,8 @@ class TestStringMethods(unittest.TestCase):
     def test_add_k_and_1_element_is_full_true(self):
         k = 5
         q = MyCircularQueue(k)
-        for x in range(k + 1):
+        for x in range(k):
             q.enQueue(x)
-        self.assertEqual(q.size - 1, q.Front())
         self.assertTrue(q.isFull())
 
 if __name__ == '__main__':
