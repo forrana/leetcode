@@ -7,25 +7,27 @@ class MyCircularQueue:
         self.size: int = k
         self.front_index: int = 0
         self.rear_index: int = 0
+        self.elements: int = 0
 
     def enQueue(self, value: int) -> bool:
         if not self.isFull():
             index: int = self.rear_index
             if self.rear_index >= self.size:
-                while index >= self.size:
-                    index -= self.size
+                index %= self.size
             self.lst[index] = value
+            self.elements += 1
             self.rear_index += 1
             return True
         else:
             return False
 
     def deQueue(self) -> bool:
-        if self.isEmpty():
+        if self.elements == 0:
             return False
         self.front_index += 1
         if self.front_index > self.size:
             self.front_index = 0
+        self.elements -= 1
         return True
 
     def Front(self) -> int:
@@ -38,8 +40,8 @@ class MyCircularQueue:
             return -1
         else:
             index: int = self.rear_index
-            if self.rear_index > self.size:
-                index -= self.size
+            if self.rear_index >= self.size:
+                index %= self.size
             return self.lst[index-1]
 
     def isEmpty(self) -> bool:
@@ -56,6 +58,25 @@ class MyCircularQueue:
 
 
 class TestStringMethods(unittest.TestCase):
+    # ["MyCircularQueue", "enQueue", "enQueue", "enQueue", "deQueue", "deQueue", "enQueue", "enQueue", "deQueue", "deQueue", "deQueue", "deQueue"]
+    # [ [3],                [1],        [2],        [3],     [],        [],       [3],          [5],    [],         [],         [],         []]
+    # [ null,               true,       true,       true,     true,     true,       true,       true,   true,       true,       true,      false]
+    def test_leet_code_57(self):
+        q = MyCircularQueue(3)
+        q.enQueue(1)
+        q.enQueue(2)
+        q.enQueue(3)
+        q.deQueue()
+        q.deQueue()
+        q.enQueue(3)
+        q.enQueue(5)
+        q.deQueue()
+        q.deQueue()
+        q.deQueue()
+        print(q.rear_index)
+        print(q.front_index)
+        self.assertFalse(q.deQueue())
+
     # ["MyCircularQueue", "enQueue", "enQueue", "deQueue", "enQueue", "deQueue", "enQueue", "deQueue", "enQueue", "deQueue", "Front"]
     # [[2],                 [1],        [2],        [],         [3],    [],         [3],        [],         [3],    [],         []]
     # [null,                true,       true,       true,       true,   true,       true,       true,       true,   true,       3]
